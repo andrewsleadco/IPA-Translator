@@ -11,6 +11,7 @@
             margin: 0 auto;
             padding: 20px;
             line-height: 1.6;
+            background-color: #f5f5f5;
         }
         h1 {
             color: #333;
@@ -71,6 +72,9 @@
         <div class="output" id="ipa-output">IPA transcription will appear here</div>
         <div class="info">
             <p>This translator converts English words to their IPA (International Phonetic Alphabet) pronunciation.</p>
+            <p>For words not in our dictionary, we use algorithmic translation to generate approximate IPA pronunciation.</p>
+            <p><strong>Common IPA Symbols:</strong><br>
+            æ (cat), ɑː (car), ɛ (bed), iː (see), ɪ (sit), ɔː (law), ʌ (cup), uː (too), ʊ (book), ə (about), eɪ (day), aɪ (my), ɔɪ (boy), aʊ (how), oʊ (go)</p>
         </div>
     </div>
 
@@ -532,14 +536,159 @@
             "ipa": "ˌaɪpiːˈeɪ"
         };
 
+        // Rules for algorithmic translation
+        const phonemeRules = [
+            // Vowels
+            { pattern: /ee|ea/, ipa: "iː" },
+            { pattern: /oo/, ipa: "uː" },
+            { pattern: /oa|ow/, ipa: "oʊ" },
+            { pattern: /ai|ay/, ipa: "eɪ" },
+            { pattern: /ie|ye|igh|y\b/, ipa: "aɪ" },
+            { pattern: /ou|ow/, ipa: "aʊ" },
+            { pattern: /oi|oy/, ipa: "ɔɪ" },
+            { pattern: /au|aw/, ipa: "ɔː" },
+            { pattern: /ar/, ipa: "ɑːr" },
+            { pattern: /er|ir|ur/, ipa: "ɜːr" },
+            { pattern: /or/, ipa: "ɔːr" },
+            { pattern: /a([^aeiou]e|[^aeiou][^aeiou])/, ipa: "eɪ" },
+            { pattern: /i([^aeiou]e|[^aeiou][^aeiou])/, ipa: "aɪ" },
+            { pattern: /o([^aeiou]e|[^aeiou][^aeiou])/, ipa: "oʊ" },
+            { pattern: /u([^aeiou]e|[^aeiou][^aeiou])/, ipa: "juː" },
+            { pattern: /e([^aeiou]e)/, ipa: "iː" },
+            { pattern: /a\b/, ipa: "ə" },
+            { pattern: /e\b/, ipa: "i" },
+            { pattern: /a/, ipa: "æ" },
+            { pattern: /e/, ipa: "ɛ" },
+            { pattern: /i/, ipa: "ɪ" },
+            { pattern: /o/, ipa: "ɑː" },
+            { pattern: /u/, ipa: "ʌ" },
+    
+            // Consonants
+            { pattern: /th(?=[aeiou])/, ipa: "ð" },
+            { pattern: /th/, ipa: "θ" },
+            { pattern: /ch/, ipa: "tʃ" },
+            { pattern: /sh/, ipa: "ʃ" },
+            { pattern: /ph/, ipa: "f" },
+            { pattern: /wh/, ipa: "w" },
+            { pattern: /ng/, ipa: "ŋ" },
+            { pattern: /dg|j/, ipa: "dʒ" },
+            { pattern: /ck/, ipa: "k" },
+            { pattern: /kn/, ipa: "n" },
+            { pattern: /mb\b/, ipa: "m" },
+            { pattern: /gn/, ipa: "n" },
+            { pattern: /ps/, ipa: "s" },
+            { pattern: /wr/, ipa: "r" },
+            { pattern: /gh(?=[aeiou])/, ipa: "g" },
+            { pattern: /gh/, ipa: "" },
+            { pattern: /qu/, ipa: "kw" },
+            { pattern: /x/, ipa: "ks" },
+            { pattern: /b/, ipa: "b" },
+            { pattern: /c(?=[eiy])/, ipa: "s" },
+            { pattern: /c/, ipa: "k" },
+            { pattern: /d/, ipa: "d" },
+            { pattern: /f/, ipa: "f" },
+            { pattern: /g(?=[eiy])/, ipa: "dʒ" },
+            { pattern: /g/, ipa: "g" },
+            { pattern: /h/, ipa: "h" },
+            { pattern: /k/, ipa: "k" },
+            { pattern: /l/, ipa: "l" },
+            { pattern: /m/, ipa: "m" },
+            { pattern: /n/, ipa: "n" },
+            { pattern: /p/, ipa: "p" },
+            { pattern: /q/, ipa: "k" },
+            { pattern: /r/, ipa: "r" },
+            { pattern: /s(?=[aeiou])/, ipa: "z" },
+            { pattern: /s/, ipa: "s" },
+            { pattern: /t(?=ion)/, ipa: "ʃ" },
+            { pattern: /t/, ipa: "t" },
+            { pattern: /v/, ipa: "v" },
+            { pattern: /w/, ipa: "w" },
+            { pattern: /y/, ipa: "j" },
+            { pattern: /z/, ipa: "z" }
+        ];
+        
         // Function to translate text to IPA
         function translateToIPA(word) {
             word = word.toLowerCase().trim();
+            
+            // Check if word is in dictionary
             if (ipaDict[word]) {
                 return ipaDict[word];
-            } else {
-                return "Word not found in dictionary";
+            } 
+            
+            // If not in dictionary, use algorithmic translation
+            try {
+                return algorithmicTranslate(word);
+            } catch (error) {
+                console.error("Error in algorithmic translation:", error);
+                return "Could not translate: " + error.message;
             }
+        }
+        
+        // Algorithmic translation function
+        function algorithmicTranslate(word) {
+            // Prepare for syllable detection
+            let result = "";
+            let remainingWord = word;
+            
+            // Process the word character by character
+            while (remainingWord.length > 0) {
+                let matchFound = false;
+                
+                // Try to match the longest pattern first
+                for (let i = 0; i < phonemeRules.length; i++) {
+                    const rule = phonemeRules[i];
+                    const match = remainingWord.match(rule.pattern);
+                    
+                    if (match && match.index === 0) {
+                        // Add the IPA symbol for the matched pattern
+                        result += rule.ipa;
+                        // Remove the matched part from the remaining word
+                        remainingWord = remainingWord.substring(match[0].length);
+                        matchFound = true;
+                        break;
+                    }
+                }
+                
+                // If no pattern matched, skip this character
+                if (!matchFound) {
+                    remainingWord = remainingWord.substring(1);
+                }
+            }
+            
+            // Add word stress for words with multiple syllables
+            // This is a very simplified approach
+            const syllableCount = countSyllables(word);
+            if (syllableCount > 1) {
+                // Add primary stress to the first syllable as a simple rule
+                // This is a naive approach but works as a starting point
+                const parts = result.split(/([aeiouæɑːɛɪɔːʌuːoʊaɪaʊɔɪɜːeɪ]+)/);
+                if (parts.length > 2) {
+                    // Add stress mark before the first vowel sound
+                    for (let i = 0; i < parts.length; i++) {
+                        if (/[aeiouæɑːɛɪɔːʌuːoʊaɪaʊɔɪɜːeɪ]/.test(parts[i])) {
+                            parts[i] = "ˈ" + parts[i];
+                            break;
+                        }
+                    }
+                    result = parts.join("");
+                }
+            }
+            
+            return result || "Could not translate";
+        }
+        
+        // Helper function to estimate syllable count
+        function countSyllables(word) {
+            word = word.toLowerCase();
+            if (word.length <= 3) return 1;
+            
+            // Remove silent e at the end
+            word = word.replace(/e$/, "");
+            
+            // Count vowel groups
+            const vowelGroups = word.match(/[aeiouy]+/g);
+            return vowelGroups ? vowelGroups.length : 1;
         }
 
         // Event listeners
