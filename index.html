@@ -63,13 +63,16 @@
     </style>
 </head>
 <body>
-    <h1>English to IPA Translator</h1>
+                <h1>English to IPA Translator</h1>
     <div class="container">
         <div class="input-area">
             <input type="text" id="english-input" placeholder="Enter an English word" autocomplete="off">
             <button id="translate-btn">Translate</button>
         </div>
         <div class="output" id="ipa-output">IPA transcription will appear here</div>
+        <div style="margin-top: 10px;">
+            <button id="test-words-btn" style="background-color: #34a853;">Try Example Words</button>
+        </div>
         <div class="info">
             <p>This translator converts English words to their IPA (International Phonetic Alphabet) pronunciation.</p>
             <p>For words not in our dictionary, we use algorithmic translation to generate approximate IPA pronunciation.</p>
@@ -629,7 +632,7 @@
         function algorithmicTranslate(word) {
             // Prepare for syllable detection
             let result = "";
-            let remainingWord = word;
+            let remainingWord = word.toLowerCase().trim();
             
             // Process the word character by character
             while (remainingWord.length > 0) {
@@ -644,36 +647,41 @@
                         // Add the IPA symbol for the matched pattern
                         result += rule.ipa;
                         // Remove the matched part from the remaining word
-                        remainingWord = remainingWord.substring(match[0].length);
+                        const matchedText = match[0];
+                        remainingWord = remainingWord.substring(matchedText.length);
                         matchFound = true;
                         break;
                     }
                 }
                 
-                // If no pattern matched, skip this character
+                // If no pattern matched, skip this character and add a marker
                 if (!matchFound) {
+                    // Just skip the character but add a placeholder so user knows something was skipped
+                    result += "·";
                     remainingWord = remainingWord.substring(1);
                 }
             }
             
             // Add word stress for words with multiple syllables
-            // This is a very simplified approach
             const syllableCount = countSyllables(word);
             if (syllableCount > 1) {
                 // Add primary stress to the first syllable as a simple rule
-                // This is a naive approach but works as a starting point
-                const parts = result.split(/([aeiouæɑːɛɪɔːʌuːoʊaɪaʊɔɪɜːeɪ]+)/);
-                if (parts.length > 2) {
-                    // Add stress mark before the first vowel sound
-                    for (let i = 0; i < parts.length; i++) {
-                        if (/[aeiouæɑːɛɪɔːʌuːoʊaɪaʊɔɪɜːeɪ]/.test(parts[i])) {
-                            parts[i] = "ˈ" + parts[i];
-                            break;
-                        }
+                let stressAdded = false;
+                const vowelPattern = /[æɑːɛiːɪɔːʌuːʊəeɪaɪɔɪaʊoʊ]/;
+                
+                // Find first vowel sound and add stress before it
+                for (let i = 0; i < result.length; i++) {
+                    if (vowelPattern.test(result.substr(i, 1)) || 
+                        (i+1 < result.length && vowelPattern.test(result.substr(i, 2)))) {
+                        result = result.substring(0, i) + "ˈ" + result.substring(i);
+                        stressAdded = true;
+                        break;
                     }
-                    result = parts.join("");
                 }
             }
+            
+            // Remove placeholder markers
+            result = result.replace(/·/g, "");
             
             return result || "Could not translate";
         }
@@ -702,7 +710,20 @@
             if (e.key === 'Enter') {
                 const englishWord = document.getElementById('english-input').value;
                 const ipaOutput = document.getElementById('ipa-output');
-                ipaOutput.textContent = translateToIPA(englishWord);
+                
+                if (!englishWord.trim()) {
+                    ipaOutput.textContent = "Please enter a word";
+                    return;
+                }
+                
+                const result = translateToIPA(englishWord);
+                
+                // Display if result is from dictionary or algorithm
+                if (ipaDict[englishWord.toLowerCase().trim()]) {
+                    ipaOutput.textContent = result + " (dictionary match)";
+                } else {
+                    ipaOutput.textContent = result + " (algorithmic translation)";
+                }
             }
         });
     </script>
