@@ -123,6 +123,8 @@
                 <button class="example-word" data-word="algorithm">algorithm</button>
                 <button class="example-word" data-word="america">america</button>
                 <button class="example-word" data-word="translate">translate</button>
+                <button class="example-word" data-word="correct">correct</button>
+                <button class="example-word" data-word="mirror">mirror</button>
             </div>
         </div>
         
@@ -348,6 +350,10 @@
             "word": "wɝd",
             "world": "wɝld",
             "learn": "lɝn",
+            "correct": "kəˈɻɛkt",
+            "terrible": "ˈtɛɻəbəl",
+            "horror": "ˈhɔɻɚ",
+            "mirror": "ˈmɪɻɚ",
             "apple": "ˈæpəl",
             "banana": "bəˈnænə",
             "orange": "ˈɔɻɪndʒ",
@@ -500,7 +506,7 @@
             { pattern: /ally$/, phonology: "əli" },
             { pattern: /ily$/, phonology: "ɪli" },
             
-            // Double consonants (often treated as single in pronunciation)
+            // Double consonants (treated as single in pronunciation - IPA doesn't use consecutive identical consonants)
             { pattern: /mm/, phonology: "m" },
             { pattern: /nn/, phonology: "n" },
             { pattern: /tt/, phonology: "t" },
@@ -802,7 +808,7 @@
         function simpleTranslate(word) {
             // Simplified rules for common letter combinations
             const simplifiedRules = [
-                // Double consonants
+                // Double consonants (IPA doesn't use consecutive identical consonants)
                 { pattern: /mm/, replacement: "m" },
                 { pattern: /nn/, replacement: "n" },
                 { pattern: /tt/, replacement: "t" },
@@ -812,6 +818,13 @@
                 { pattern: /ss/, replacement: "s" },
                 { pattern: /pp/, replacement: "p" },
                 { pattern: /cc/, replacement: "k" },
+                { pattern: /rr/, replacement: "ɻ" },
+                { pattern: /bb/, replacement: "b" },
+                { pattern: /gg/, replacement: "g" },
+                { pattern: /kk/, replacement: "k" },
+                { pattern: /ww/, replacement: "w" },
+                { pattern: /yy/, replacement: "j" },
+                { pattern: /zz/, replacement: "z" },
                 
                 // Common American English patterns
                 { pattern: /th/, replacement: "θ" },  // Simplified, should be context dependent
@@ -884,6 +897,9 @@
                 .replace(/t/g, "t")
                 .replace(/w/g, "w")
                 .replace(/z/g, "z");
+                
+            // Remove any consecutive identical consonants (IPA doesn't use them)
+            result = result.replace(/([bcdfghjklmnpqrstvwxzɻʃθðŋ])\1+/g, "$1");
                 
             return result;
         }
