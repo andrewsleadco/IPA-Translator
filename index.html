@@ -100,15 +100,45 @@
             color: #777;
             font-style: italic;
         }
+        textarea {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-height: 100px;
+            margin-bottom: 15px;
+            resize: vertical;
+        }
+        .mode-selector {
+            margin-bottom: 20px;
+        }
+        .mode-selector label {
+            margin-right: 15px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <h1>English to IPA Translator</h1>
     <div class="container">
-        <div class="input-area">
+        <div class="mode-selector">
+            <input type="radio" id="word-mode" name="mode" value="word" checked>
+            <label for="word-mode">Single Word</label>
+            <input type="radio" id="text-mode" name="mode" value="text">
+            <label for="text-mode">Full Text</label>
+        </div>
+        
+        <div id="word-input-container" class="input-area">
             <input type="text" id="english-input" placeholder="Enter an English word" autocomplete="off">
             <button id="translate-btn">Translate</button>
         </div>
+        
+        <div id="text-input-container" style="display: none;">
+            <textarea id="english-text-input" placeholder="Enter English text to translate to IPA"></textarea>
+            <button id="translate-text-btn">Translate Text</button>
+        </div>
+        
         <div class="output" id="ipa-output">IPA transcription will appear here</div>
         
         <div class="examples">
@@ -116,21 +146,21 @@
             <div>
                 <button class="example-word" data-word="cat">cat</button>
                 <button class="example-word" data-word="dog">dog</button>
-                <button class="example-word" data-word="andrew">andrew</button>
-                <button class="example-word" data-word="emma">emma</button>
+                <button class="example-word" data-word="better">better</button>
+                <button class="example-word" data-word="mirror">mirror</button>
                 <button class="example-word" data-word="computer">computer</button>
                 <button class="example-word" data-word="pronunciation">pronunciation</button>
-                <button class="example-word" data-word="algorithm">algorithm</button>
-                <button class="example-word" data-word="america">america</button>
-                <button class="example-word" data-word="translate">translate</button>
-                <button class="example-word" data-word="correct">correct</button>
-                <button class="example-word" data-word="mirror">mirror</button>
+                <button class="example-word" data-word="veterinary">veterinary</button>
+                <button class="example-word" data-word="territory">territory</button>
+                <button class="example-word" data-word="superb">superb</button>
+                <button class="example-word" data-word="hurry">hurry</button>
+                <button class="example-word" data-text="Well, here's a story for you: Sarah Perry was a veterinary nurse.">Sample Text</button>
             </div>
         </div>
         
         <div class="info">
             <h3>About This Translator</h3>
-            <p>This translator converts English words to their IPA (International Phonetic Alphabet) pronunciation using General American English dialect.</p>
+            <p>This translator converts English words to their IPA (International Phonetic Alphabet) pronunciation using General American English dialect rules. It handles r-colored vowels, flapped t's, stress patterns, and other phonological features of American English.</p>
             
             <h3>Common IPA Symbols for American English</h3>
             <table>
@@ -147,8 +177,8 @@
                     <td>she, nation</td>
                 </tr>
                 <tr>
-                    <td>ɑ</td>
-                    <td>hot, father</td>
+                    <td>ɑː</td>
+                    <td>father, spa</td>
                     <td>ʒ</td>
                     <td>vision, pleasure</td>
                 </tr>
@@ -159,7 +189,7 @@
                     <td>chair, nature</td>
                 </tr>
                 <tr>
-                    <td>i</td>
+                    <td>iː</td>
                     <td>see, meat</td>
                     <td>dʒ</td>
                     <td>just, edge</td>
@@ -171,7 +201,7 @@
                     <td>sing, think</td>
                 </tr>
                 <tr>
-                    <td>ɔ</td>
+                    <td>ɔː</td>
                     <td>law, caught</td>
                     <td>θ</td>
                     <td>thin, through</td>
@@ -183,7 +213,7 @@
                     <td>this, father</td>
                 </tr>
                 <tr>
-                    <td>u</td>
+                    <td>uː</td>
                     <td>tool, blue</td>
                     <td>ə</td>
                     <td>about, supply</td>
@@ -203,36 +233,37 @@
                 <tr>
                     <td>aɪ</td>
                     <td>my, sight</td>
-                    <td>ˈ</td>
-                    <td>primary stress</td>
+                    <td>ɾ</td>
+                    <td>better, water</td>
                 </tr>
                 <tr>
                     <td>oʊ</td>
                     <td>go, boat</td>
-                    <td>ˌ</td>
-                    <td>secondary stress</td>
-                </tr>
-                <tr>
-                    <td>aʊ</td>
-                    <td>now, house</td>
                     <td>ɻ</td>
                     <td>run, right</td>
                 </tr>
                 <tr>
+                    <td>aʊ</td>
+                    <td>now, house</td>
+                    <td>ˈ</td>
+                    <td>primary stress</td>
+                </tr>
+                <tr>
                     <td>ɔɪ</td>
                     <td>boy, choice</td>
-                    <td></td>
-                    <td></td>
+                    <td>ˌ</td>
+                    <td>secondary stress</td>
                 </tr>
             </table>
         </div>
     </div>
 
     <script>
-        // American English IPA Dictionary
+        // American English IPA Dictionary - Core words and examples
         const ipaDict = {
-            // Basic words
+            // Basic function words
             "a": "ə",
+            "an": "ən",
             "the": "ðə",
             "of": "əv",
             "to": "tu",
@@ -240,13 +271,13 @@
             "in": "ɪn",
             "is": "ɪz",
             "it": "ɪt",
+            "for": "fɔɹ",
             "you": "ju",
             "that": "ðæt",
             "he": "hi",
             "was": "wəz",
-            "for": "fɔɻ",
             "on": "ɑn",
-            "are": "ɑɻ",
+            "are": "ɑɹ",
             "with": "wɪð",
             "as": "æz",
             "his": "hɪz",
@@ -256,8 +287,8 @@
             "one": "wʌn",
             "have": "hæv",
             "this": "ðɪs",
-            "from": "fɻʌm",
-            "or": "ɔɻ",
+            "from": "fɹʌm",
+            "or": "ɔɹ",
             "had": "hæd",
             "by": "baɪ",
             "not": "nɑt",
@@ -268,309 +299,233 @@
             "were": "wɝ",
             "we": "wi",
             "when": "wɛn",
-            "your": "jʊɻ",
+            "your": "jʊɹ",
             "can": "kæn",
             "said": "sɛd",
-            "there": "ðɛɻ",
+            "there": "ðɛɹ",
             "use": "juz",
-            "an": "æn",
-            "each": "itʃ",
-            "which": "wɪtʃ",
-            "she": "ʃi",
-            "do": "du",
-            "how": "haʊ",
-            "their": "ðɛɻ",
-            "if": "ɪf",
-            "will": "wɪl",
-            "up": "ʌp",
-            "other": "ʌðɚ",
-            "about": "əˈbaʊt",
-            "out": "aʊt",
-            "many": "ˈmɛni",
-            "then": "ðɛn",
-            "them": "ðɛm",
-            "these": "ðiz",
-            "so": "soʊ",
-            "some": "sʌm",
-            "her": "hɝ",
-            "would": "wʊd",
-            "make": "meɪk",
-            "like": "laɪk",
-            "him": "hɪm",
-            "into": "ˈɪntu",
-            "time": "taɪm",
-            "has": "hæz",
-            "look": "lʊk",
-            "two": "tu",
-            "more": "mɔɻ",
-            "write": "ɻaɪt",
-            "go": "goʊ",
-            "see": "si",
-            "number": "ˈnʌmbɚ",
-            "no": "noʊ",
-            "way": "weɪ",
-            "could": "kʊd",
-            "people": "ˈpipəl",
-            "my": "maɪ",
-            "than": "ðæn",
-            "first": "fɝst",
-            "water": "ˈwɔtɚ",
-            "been": "bɪn",
-            "call": "kɔl",
-            "who": "hu",
-            "oil": "ɔɪl",
-            "its": "ɪts",
-            "now": "naʊ",
-            "find": "faɪnd",
-            "long": "lɔŋ",
-            "down": "daʊn",
-            "day": "deɪ",
-            "did": "dɪd",
-            "get": "gɛt",
-            "come": "kʌm",
-            "made": "meɪd",
-            "may": "meɪ",
-            "part": "pɑɻt",
             
-            // Common American words
+            // Words from "Comma Gets a Cure" passage
+            "well": "wɛl",
+            "here's": "hɪɹz",
+            "story": "stɔɹi",
+            "sarah": "sɛɹə",
+            "perry": "pɛɹi",
+            "veterinary": "ˈvɛtəɹɪnɛɹi",
+            "nurse": "nɝs",
+            "who": "hu",
+            "been": "bɪn",
+            "working": "ˈwɝkɪŋ",
+            "daily": "ˈdeɪli",
+            "at": "æt",
+            "old": "oʊld",
+            "zoo": "zu",
+            "deserted": "dɪˈzɝtəd",
+            "district": "ˈdɪstɹɪkt",
+            "territory": "ˈtɛɹətɔɹi",
+            "so": "soʊ",
+            "she": "ʃi",
+            "very": "ˈvɛɹi",
+            "happy": "ˈhæpi",
+            "start": "stɑɹt",
+            "new": "nu",
+            "job": "dʒɑb",
+            "superb": "suˈpɝb",
+            "private": "ˈpɹaɪvət",
+            "practice": "ˈpɹæktɪs",
+            "north": "nɔɹθ",
+            "square": "skwɛɹ",
+            "near": "nɪɹ",
+            "duke": "duk",
+            "street": "stɹit",
+            "tower": "ˈtaʊɚ",
+            "that": "ðæt",
+            "area": "ˈɛɹiə",
+            "much": "mʌtʃ",
+            "nearer": "ˈnɪɹɚ",
+            "her": "hɝ",
+            "and": "ænd",
+            "more": "mɔɹ",
+            "liking": "ˈlaɪkɪŋ",
+            "even": "ˈivən",
+            "on": "ɑn",
+            "first": "fɝst",
+            "morning": "ˈmɔɹnɪŋ",
+            "felt": "fɛlt",
+            "stressed": "stɹɛst",
+            "ate": "eɪt",
+            "bowl": "boʊl",
+            "porridge": "ˈpɔɹɪdʒ",
+            "checked": "tʃɛkt",
+            "herself": "hɝˈsɛlf",
+            "mirror": "ˈmɪɹɚ",
+            "washed": "wɑʃt",
+            "face": "feɪs",
+            "hurry": "ˈhɝi",
+            "then": "ðɛn",
+            "put": "pʊt",
+            "plain": "pleɪn",
+            "yellow": "ˈjɛloʊ",
+            "dress": "dɹɛs",
+            "fleece": "flis",
+            "jacket": "ˈdʒækət",
+            "picked": "pɪkt",
+            "up": "ʌp",
+            "kit": "kɪt",
+            "headed": "ˈhɛdəd",
+            "work": "wɝk",
+            
+            // Common words with special pronunciations
             "cat": "kæt",
             "dog": "dɔg",
             "mouse": "maʊs",
             "computer": "kəmˈpjutɚ",
-            "america": "əˈmɛɻɪkə",
-            "water": "ˈwɔtɚ",
-            "better": "ˈbɛtɚ",
+            "america": "əˈmɛɹɪkə",
+            "water": "ˈwɔɾɚ",
+            "better": "ˈbɛɾɚ",
+            "butter": "ˈbʌɾɚ",
             "happy": "ˈhæpi",
-            "running": "ˈɻʌnɪŋ",
+            "running": "ˈɹʌnɪŋ",
             "phone": "foʊn",
-            "through": "θɻu",
+            "through": "θɹu",
             "thought": "θɔt",
             "bird": "bɝd",
-            "work": "wɝk",
             "word": "wɝd",
             "world": "wɝld",
             "learn": "lɝn",
-            "correct": "kəˈɻɛkt",
-            "terrible": "ˈtɛɻəbəl",
-            "horror": "ˈhɔɻɚ",
-            "mirror": "ˈmɪɻɚ",
+            "correct": "kəˈɹɛkt",
+            "terrible": "ˈtɛɹəbəl",
+            "horror": "ˈhɔɹɚ",
+            "mirror": "ˈmɪɹɚ",
             "apple": "ˈæpəl",
             "banana": "bəˈnænə",
-            "orange": "ˈɔɻɪndʒ",
-            "algorithm": "ˈælgəˌɻɪðəm",
-            "pronunciation": "pɻəˌnʌnsiˈeɪʃən",
+            "orange": "ˈɔɹɪndʒ",
+            "algorithm": "ˈælgəˌɹɪðəm",
+            "pronunciation": "pɹəˌnʌnsiˈeɪʃən",
             "elephant": "ˈɛləfənt",
-            "beautiful": "ˈbjutəfəl",
-            "dictionary": "ˈdɪkʃəˌnɛɻi",
-            "everything": "ˈɛvɻiˌθɪŋ",
+            "beautiful": "ˈbjuɾəfəl",
+            "dictionary": "ˈdɪkʃəˌnɛɹi",
+            "everything": "ˈɛvɹiˌθɪŋ",
             "knowledge": "ˈnɑlɪdʒ",
             "language": "ˈlæŋgwɪdʒ",
             "mountain": "ˈmaʊntən",
             "question": "ˈkwɛstʃən",
-            "remember": "ɻɪˈmɛmbɚ",
-            "satellite": "ˈsætəˌlaɪt",
+            "remember": "ɹɪˈmɛmbɚ",
             "technology": "tɛkˈnɑlədʒi",
             "university": "ˌjunəˈvɝsəti",
             "vegetable": "ˈvɛdʒtəbəl",
             "yesterday": "ˈjɛstɚdeɪ",
             "english": "ˈɪŋglɪʃ",
-            "american": "əˈmɛɻɪkən",
-            "translate": "tɻænzˈleɪt",
-            
-            // Names and problematic words
-            "andrew": "ˈændɻu",
-            "emma": "ˈɛmə",
-            "michael": "ˈmaɪkəl",
-            "jennifer": "ˈdʒɛnɪfɚ",
-            "william": "ˈwɪljəm",
-            "david": "ˈdeɪvɪd",
-            "sarah": "ˈsɛɻə",
-            "robert": "ˈɻɑbɚt",
-            "joseph": "ˈdʒoʊzəf",
-            "thomas": "ˈtɑməs",
-            "john": "dʒɑn",
-            "patricia": "pəˈtɻɪʃə",
-            "jessica": "ˈdʒɛsɪkə",
-            "christopher": "ˈkɻɪstəfɚ",
-            "elizabeth": "ɪˈlɪzəbəθ",
-            "matthew": "ˈmæθju",
-            "anthony": "ˈænθəni",
-            "joshua": "ˈdʒɑʃwə",
-            "daniel": "ˈdænjəl",
-            "mary": "ˈmɛɻi",
-            "james": "dʒeɪmz",
-            "susan": "ˈsuzən",
-            "richard": "ˈɻɪtʃɚd",
-            "kevin": "ˈkɛvɪn",
-            "rachel": "ˈɻeɪtʃəl",
-            "mark": "mɑɻk",
-            "amanda": "əˈmændə",
-            "laura": "ˈlɔɻə",
-            "emily": "ˈɛməli",
-            "jason": "ˈdʒeɪsən",
-            "george": "dʒɔɻdʒ",
-            "linda": "ˈlɪndə",
-            "gregory": "ˈgɻɛgəɻi",
-            "nicholas": "ˈnɪkələs",
-            "barbara": "ˈbɑɻbəɻə",
-            "paul": "pɔl",
-            "melissa": "məˈlɪsə",
-            "kenneth": "ˈkɛnəθ",
-            "ashley": "ˈæʃli",
-            "steven": "ˈstivən",
-            "rebecca": "ɻɪˈbɛkə",
-            "donald": "ˈdɑnəld",
-            "carol": "ˈkæɻəl",
-            "charles": "tʃɑɻlz",
-            "lisa": "ˈlisə",
-            "edward": "ˈɛdwɚd",
-            "brian": "ˈbɻaɪən",
-            "helen": "ˈhɛlən",
-            "michelle": "mɪˈʃɛl",
-            "nancy": "ˈnænsi",
-            "karen": "ˈkæɻən",
-            "betty": "ˈbɛti",
-            "benjamin": "ˈbɛndʒəmɪn",
-            "deborah": "ˈdɛbəɻə",
-            "margaret": "ˈmɑɻgəɻət",
-            "elizabeth": "ɪˈlɪzəbəθ",
-            "alexander": "ˌælɪgˈzændɚ",
-            "victoria": "vɪkˈtɔɻiə",
-            "jonathan": "ˈdʒɑnəθən",
-            "megan": "ˈmɛgən",
-            "matthew": "ˈmæθju",
-            "lauren": "ˈlɔɻən",
-            "tiffany": "ˈtɪfəni",
-            "justin": "ˈdʒʌstɪn",
-            "stephanie": "ˈstɛfəni",
-            "christina": "kɻɪsˈtinə",
-            "kelly": "ˈkɛli",
-            "timothy": "ˈtɪməθi",
-            "grace": "gɻeɪs",
-            "samantha": "səˈmænθə",
-            "peter": "ˈpitɚ",
-            "zachary": "ˈzækəɻi"
+            "american": "əˈmɛɹɪkən"
         };
 
-        // Common English word patterns for mapping to IPA
+        // Common word patterns for American English phonology
         const wordPatterns = [
-            // Common word endings
-            { pattern: /tion$/, phonology: "ʃən" },
-            { pattern: /sion$/, phonology: "ʒən" },
-            { pattern: /tial$/, phonology: "ʃəl" },
-            { pattern: /cial$/, phonology: "ʃəl" },
-            { pattern: /ing$/, phonology: "ɪŋ" },
-            { pattern: /ings$/, phonology: "ɪŋz" },
-            { pattern: /ed$/, phonology: "d" },     // Simplified - context dependent
-            { pattern: /er$/, phonology: "ɚ" },
-            { pattern: /ers$/, phonology: "ɚz" },
-            { pattern: /or$/, phonology: "ɚ" },
-            { pattern: /ors$/, phonology: "ɚz" },
-            { pattern: /ar$/, phonology: "ɚ" },
-            { pattern: /ars$/, phonology: "ɚz" },
-            { pattern: /le$/, phonology: "əl" },
-            { pattern: /les$/, phonology: "əlz" },
-            { pattern: /ble$/, phonology: "bəl" },
-            { pattern: /bles$/, phonology: "bəlz" },
-            { pattern: /ple$/, phonology: "pəl" },
-            { pattern: /ples$/, phonology: "pəlz" },
-            { pattern: /dle$/, phonology: "dəl" },
-            { pattern: /dles$/, phonology: "dəlz" },
-            { pattern: /ture$/, phonology: "tʃɚ" },
-            { pattern: /tures$/, phonology: "tʃɚz" },
-            { pattern: /sure$/, phonology: "ʒɚ" },
-            { pattern: /sures$/, phonology: "ʒɚz" },
-            { pattern: /able$/, phonology: "eɪbəl" },
-            { pattern: /ment$/, phonology: "mənt" },
-            { pattern: /ments$/, phonology: "mənts" },
-            { pattern: /ness$/, phonology: "nəs" },
-            { pattern: /nesses$/, phonology: "nəsəz" },
-            { pattern: /ful$/, phonology: "fəl" },
-            { pattern: /fuls$/, phonology: "fəlz" },
-            { pattern: /age$/, phonology: "ɪdʒ" },
-            { pattern: /ages$/, phonology: "ɪdʒəz" },
-            { pattern: /ize$/, phonology: "aɪz" },
-            { pattern: /izes$/, phonology: "aɪzəz" },
-            { pattern: /ise$/, phonology: "aɪz" },
-            { pattern: /ises$/, phonology: "aɪzəz" },
-            { pattern: /ous$/, phonology: "əs" },
-            { pattern: /al$/, phonology: "əl" },
-            { pattern: /als$/, phonology: "əlz" },
-            { pattern: /ism$/, phonology: "ɪzəm" },
-            { pattern: /isms$/, phonology: "ɪzəmz" },
-            { pattern: /ist$/, phonology: "ɪst" },
-            { pattern: /ists$/, phonology: "ɪsts" },
-            { pattern: /ity$/, phonology: "ɪti" },
-            { pattern: /ities$/, phonology: "ɪtiz" },
-            { pattern: /ly$/, phonology: "li" },
-            { pattern: /ally$/, phonology: "əli" },
-            { pattern: /ily$/, phonology: "ɪli" },
+            // Vowel sounds (with length marking for stressed vowels)
+            { pattern: /a(?=r[^aeiou]|r$)/, phonology: "ɑɹ" },    // car, far
+            { pattern: /a(?=[^aeiou]e$)/, phonology: "eɪ" },      // bake, late
+            { pattern: /a(?=w|ll|lk|lt)/, phonology: "ɔ" },       // law, tall, walk
+            { pattern: /ee|ea/, phonology: "i" },                 // see, meat
+            { pattern: /e(?=r[^aeiou]|r$)/, phonology: "ɝ" },     // her, verb
+            { pattern: /i(?=r[^aeiou]|r$)/, phonology: "ɝ" },     // bird, stir
+            { pattern: /u(?=r[^aeiou]|r$)/, phonology: "ɝ" },     // burn, hurt
+            { pattern: /o(?=r[^aeiou]|r$)/, phonology: "ɔɹ" },    // for, north
+            { pattern: /i(?=[^aeiou]e$)/, phonology: "aɪ" },      // time, like
+            { pattern: /o(?=[^aeiou]e$)/, phonology: "oʊ" },      // home, joke
+            { pattern: /u(?=[^aeiou]e$)/, phonology: "ju" },      // use, cute
+            { pattern: /oo/, phonology: "u" },                    // moon, food
+            { pattern: /oo(?=k|d)/, phonology: "ʊ" },             // book, good
+            { pattern: /ou|ow/, phonology: "aʊ" },                // out, how
+            { pattern: /oi|oy/, phonology: "ɔɪ" },                // boy, noise
+            { pattern: /ai|ay/, phonology: "eɪ" },                // day, wait
             
-            // Double consonants (treated as single in pronunciation - IPA doesn't use consecutive identical consonants)
+            // Consonant patterns
+            { pattern: /t(?=[aeiou][aeiou]|[aeiou]n|[aeiou]r|[aeiou]l)/, phonology: "ɾ" },  // better, water, party
+            { pattern: /tt(?=[aeiou])/, phonology: "ɾ" },         // butter, better
+            { pattern: /d(?=[aeiou][aeiou]|[aeiou]n|[aeiou]r|[aeiou]l)/, phonology: "ɾ" },  // medal, ladder
+            { pattern: /dd(?=[aeiou])/, phonology: "ɾ" },         // ladder, muddy
+            { pattern: /th(?=[aeiouwy])/, phonology: "θ" },       // thin, through (voiceless)
+            { pattern: /th(?=[aeiou][^aeiou])/, phonology: "ð" }, // this, that (voiced)
+            { pattern: /sh|ti(?=on)|ci(?=a)/, phonology: "ʃ" },   // ship, nation, special
+            { pattern: /si(?=on)|[sz](?=ure)/, phonology: "ʒ" },  // vision, measure
+            { pattern: /ch|tch/, phonology: "tʃ" },               // chair, watch
+            { pattern: /j|dge|g(?=i|e|y)/, phonology: "dʒ" },     // join, judge, gem
+            { pattern: /ng/, phonology: "ŋ" },                    // sing, thing
+            { pattern: /ph/, phonology: "f" },                    // phone, graph
+            { pattern: /gh(?=t)/, phonology: "t" },              // night, light (silent)
+            { pattern: /gh$/, phonology: "" },                    // though (silent)
+            { pattern: /kn|gn/, phonology: "n" },                 // know, gnome
+            { pattern: /wh/, phonology: "w" },                    // what, where
+            { pattern: /wr/, phonology: "ɹ" },                    // write, wrong
+            { pattern: /mb$/, phonology: "m" },                   // climb, bomb
+            { pattern: /w(?=[aeiou])/, phonology: "w" },          // west, away
+            { pattern: /y(?=[aeiou])/, phonology: "j" },          // yes, beyond
+            
+            // Common suffixes
+            { pattern: /tion$/, phonology: "ʃən" },               // nation, station
+            { pattern: /sion$/, phonology: "ʒən" },               // vision, precision
+            { pattern: /cian$/, phonology: "ʃən" },               // musician, physician
+            { pattern: /tial$/, phonology: "ʃəl" },               // partial, essential
+            { pattern: /cial$/, phonology: "ʃəl" },               // social, special
+            { pattern: /ing$/, phonology: "ɪŋ" },                 // running, walking
+            { pattern: /ed$/, phonology: "d" },                   // played, stayed (after voiced sounds)
+            { pattern: /ed$/, phonology: "t" },                   // walked, talked (after voiceless sounds)
+            { pattern: /ed$/, phonology: "əd" },                  // needed, wanted (after t or d)
+            { pattern: /er$|or$/, phonology: "ɚ" },               // faster, doctor
+            { pattern: /ar$/, phonology: "ɚ" },                   // dollar, sugar
+            { pattern: /le$/, phonology: "əl" },                  // simple, little
+            { pattern: /ful$/, phonology: "fəl" },                // careful, beautiful
+            { pattern: /ment$/, phonology: "mənt" },              // argument, government
+            { pattern: /ness$/, phonology: "nəs" },               // kindness, happiness
+            { pattern: /age$/, phonology: "ɪdʒ" },                // village, manage
+            { pattern: /ate$/, phonology: "eɪt" },                // create, celebrate
+            
+            // Common prefixes
+            { pattern: /^un/, phonology: "ʌn" },                  // unpopular, unhappy
+            { pattern: /^re/, phonology: "ɹi" },                  // rewrite, relearn
+            { pattern: /^pre/, phonology: "pɹi" },                // prepare, preview
+            { pattern: /^in/, phonology: "ɪn" },                  // inside, incorrect
+            { pattern: /^im/, phonology: "ɪm" },                  // impossible, impolite
+            { pattern: /^dis/, phonology: "dɪs" },                // discover, display
+            { pattern: /^con/, phonology: "kɑn" },                // contact, control
+            { pattern: /^com/, phonology: "kɑm" },                // combine, compare
+            { pattern: /^pro/, phonology: "pɹoʊ" },               // produce, progress
+            { pattern: /^ex/, phonology: "ɛks" },                 // explain, example
+            
+            // Double consonants (treated as single in pronunciation)
             { pattern: /mm/, phonology: "m" },
             { pattern: /nn/, phonology: "n" },
-            { pattern: /tt/, phonology: "t" },
             { pattern: /pp/, phonology: "p" },
             { pattern: /bb/, phonology: "b" },
-            { pattern: /dd/, phonology: "d" },
             { pattern: /ff/, phonology: "f" },
             { pattern: /gg/, phonology: "g" },
             { pattern: /ll/, phonology: "l" },
-            { pattern: /rr/, phonology: "ɻ" },
+            { pattern: /rr/, phonology: "ɹ" },
             { pattern: /ss/, phonology: "s" },
-            { pattern: /zz/, phonology: "z" },
-            
-            // Specific letter combinations with distinct pronunciation
-            { pattern: /ough$/, phonology: "oʊ" },    // though
-            { pattern: /ought$/, phonology: "ɔt" },    // bought
-            { pattern: /augh$/, phonology: "æf" },    // laugh
-            { pattern: /eigh$/, phonology: "eɪ" },    // weigh
-            { pattern: /ough(?=t)/, phonology: "ɔ" },  // bought
-            { pattern: /augh(?=t)/, phonology: "ɔ" },  // caught
-            
-            // Common prefixes
-            { pattern: /^un/, phonology: "ʌn" },
-            { pattern: /^re/, phonology: "ɻi" },
-            { pattern: /^pre/, phonology: "pɻi" },
-            { pattern: /^in/, phonology: "ɪn" },
-            { pattern: /^im/, phonology: "ɪm" },
-            { pattern: /^dis/, phonology: "dɪs" },
-            { pattern: /^con/, phonology: "kɑn" },
-            { pattern: /^com/, phonology: "kɑm" },
-            { pattern: /^anti/, phonology: "ænti" },
-            { pattern: /^en/, phonology: "ɛn" },
-            { pattern: /^ex/, phonology: "ɛks" },
-            { pattern: /^pro/, phonology: "pɻoʊ" },
-            { pattern: /^sub/, phonology: "sʌb" },
-            { pattern: /^trans/, phonology: "tɻæns" },
-            { pattern: /^inter/, phonology: "ɪntɚ" },
-            { pattern: /^over/, phonology: "oʊvɚ" },
-            { pattern: /^under/, phonology: "ʌndɚ" },
-            { pattern: /^super/, phonology: "supɚ" },
-            
-            // Common English phonological patterns
-            { pattern: /ew$/, phonology: "u" },       // few, new
-            { pattern: /ire$/, phonology: "aɪɚ" },    // fire, hire
-            { pattern: /ime$/, phonology: "aɪm" },    // time, mime
-            { pattern: /ife$/, phonology: "aɪf" },    // life, wife
-            { pattern: /ice$/, phonology: "aɪs" },    // mice, nice
-            { pattern: /ide$/, phonology: "aɪd" },    // ride, wide
-            { pattern: /ive$/, phonology: "aɪv" },    // five, dive
-            { pattern: /oke$/, phonology: "oʊk" },    // woke, joke
-            { pattern: /one$/, phonology: "oʊn" },    // bone, tone (not alone)
-            
-            // Special cases for common words and names
-            { pattern: /drew$/, phonology: "dɻu" },     // Andrew
-            { pattern: /ew$/, phonology: "u" },         // Matthew
-            { pattern: /ael$/, phonology: "eɪəl" },     // Michael
-            { pattern: /ames$/, phonology: "eɪmz" },    // James
-            { pattern: /eph$/, phonology: "ɛf" },       // Joseph
-            { pattern: /omas$/, phonology: "ɑməs" },    // Thomas
-            
-            // r-controlled vowels
-            { pattern: /ar/, phonology: "ɑɻ" },      // car, far
-            { pattern: /er|ir|ur/, phonology: "ɝ" },  // her, sir, fur (stressed)
-            { pattern: /or/, phonology: "ɔɻ" },      // for, more
+            { pattern: /zz/, phonology: "z" }
+        ];
+
+        // Special r-colored vowel contexts
+        const rColoredVowels = [
+            { pattern: /ar(?=[bdfjklmnpstvz]|$)/, replacement: "ɑɹ" },  // car, far, star
+            { pattern: /er(?=[bdfjklmnpstvz]|$)/, replacement: "ɝ" },   // her, person, serve
+            { pattern: /ir(?=[bdfjklmnpstvz]|$)/, replacement: "ɝ" },   // bird, third, stir
+            { pattern: /or(?=[bdfjklmnpstvz]|$)/, replacement: "ɔɹ" },  // for, more, store
+            { pattern: /ur(?=[bdfjklmnpstvz]|$)/, replacement: "ɝ" },   // turn, burn, fur
+            { pattern: /ear(?=[bdfjklmnpstvz]|$)/, replacement: "ɪɹ" }, // fear, near, year
+            { pattern: /eer(?=[bdfjklmnpstvz]|$)/, replacement: "ɪɹ" }, // peer, deer, cheer
+            { pattern: /air(?=[bdfjklmnpstvz]|$)/, replacement: "ɛɹ" }, // fair, hair, chair
+            { pattern: /are(?=$)/, replacement: "ɛɹ" },                // care, bare, share
+            { pattern: /oor(?=[bdfjklmnpstvz]|$)/, replacement: "ɔɹ" }, // door, floor
+            { pattern: /our(?=[bdfjklmnpstvz]|$)/, replacement: "ɔɹ" }  // pour, four
+        ];
+
+        // Flap rules for t/tt/d/dd between vowels in unstressed positions
+        const flapRules = [
+            { pattern: /t(?=[aeiou][bcdfghjklmnpqrstvwxyz]?)/, replacement: "ɾ" },  // better, water, city
+            { pattern: /tt(?=[aeiou][bcdfghjklmnpqrstvwxyz]?)/, replacement: "ɾ" }, // butter, mattress
+            { pattern: /d(?=[aeiou][bcdfghjklmnpqrstvwxyz]?)/, replacement: "ɾ" },  // ladder, body
+            { pattern: /dd(?=[aeiou][bcdfghjklmnpqrstvwxyz]?)/, replacement: "ɾ" }  // buddy, ladder
         ];
 
         // Function to translate English word to IPA
@@ -607,400 +562,35 @@
             }
         }
         
-        // Function to find similar words in the dictionary
-        function findSimilarWords(word, dictionary, maxResults = 3) {
-            const results = [];
-            
-            for (const dictWord in dictionary) {
-                // Skip if the dictionary word is much different in length
-                if (Math.abs(dictWord.length - word.length) > 3) continue;
-                
-                const similarity = calculateSimilarity(word, dictWord);
-                if (similarity > 0.7) { // Threshold for considering similar
-                    results.push({
-                        word: dictWord,
-                        similarity: similarity
-                    });
-                }
+        // Function to translate a full English text to IPA
+        function translateTextToIPA(text) {
+            if (!text.trim()) {
+                return "Please enter text to translate";
             }
             
-            // Sort by similarity (highest first) and return top results
-            return results
-                .sort((a, b) => b.similarity - a.similarity)
-                .slice(0, maxResults);
-        }
-        
-        // Calculate similarity between two words (0 to 1)
-        function calculateSimilarity(word1, word2) {
-            // Simple implementation using Levenshtein distance
-            const distance = levenshteinDistance(word1, word2);
-            const maxLength = Math.max(word1.length, word2.length);
-            return 1 - (distance / maxLength);
-        }
-        
-        // Levenshtein distance for string similarity
-        function levenshteinDistance(a, b) {
-            if (a.length === 0) return b.length;
-            if (b.length === 0) return a.length;
+            // Split text into words and punctuation
+            const words = text.match(/\b[\w']+\b|[.,!?;:]/g) || [];
             
-            const matrix = [];
+            let ipaText = "";
+            let currentIndex = 0;
             
-            // Initialize the matrix
-            for (let i = 0; i <= b.length; i++) {
-                matrix[i] = [i];
-            }
-            for (let j = 0; j <= a.length; j++) {
-                matrix[0][j] = j;
-            }
-            
-            // Calculate distances
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    const cost = a[j-1] === b[i-1] ? 0 : 1;
-                    matrix[i][j] = Math.min(
-                        matrix[i-1][j] + 1,      // deletion
-                        matrix[i][j-1] + 1,      // insertion
-                        matrix[i-1][j-1] + cost  // substitution
-                    );
-                    
-                    // Handle transpositions
-                    if (i > 1 && j > 1 && a[j-1] === b[i-2] && a[j-2] === b[i-1]) {
-                        matrix[i][j] = Math.min(
-                            matrix[i][j],
-                            matrix[i-2][j-2] + cost
-                        );
-                    }
-                }
-            }
-            
-            return matrix[b.length][a.length];
-        }
-        
-        // Holistic word-level phonological approach for American English
-        function algorithmicTranslate(word) {
-            // Words shorter than 2 letters often have special pronunciations
-            if (word.length <= 1) {
-                return word;
-            }
-            
-            const originalWord = word.toLowerCase().trim();
-            
-            // Check for common words with irregular pronunciation
-            // This would be a much larger database in a production environment
-            const commonIrregulars = {
-                "one": "wʌn",
-                "once": "wʌns",
-                "two": "tu",
-                "been": "bɪn",
-                "busy": "ˈbɪzi",
-                "women": "ˈwɪmɪn",
-                "says": "sɛz",
-                "said": "sɛd",
-                "many": "ˈmɛni",
-                "any": "ˈɛni",
-                "know": "noʊ",
-                "knew": "nu",
-                "some": "sʌm",
-                "done": "dʌn",
-                "none": "nʌn",
-                "great": "gɻeɪt",
-                "eye": "aɪ",
-                "height": "haɪt",
-                "friend": "fɻɛnd",
-                "island": "ˈaɪlənd",
-                "answer": "ˈænsɚ",
-                "could": "kʊd",
-                "would": "wʊd",
-                "should": "ʃʊd",
-                "enough": "ɪˈnʌf",
-                "laugh": "læf",
-                "rough": "ɻʌf",
-                "tough": "tʌf",
-                "gone": "gɔn",
-                "come": "kʌm",
-                "love": "lʌv",
-                "move": "muv",
-                "have": "hæv",
-                "give": "gɪv",
-                "live": "lɪv",
-                "who": "hu",
-                "whom": "hum",
-                "whose": "huz",
-                "what": "wʌt",
-                "where": "wɛɻ",
-                "when": "wɛn",
-                "why": "waɪ",
-                "how": "haʊ",
-                "wind": "wɪnd",  // noun
-                "translate": "tɻænzˈleɪt",
-                "andrew": "ˈændɻu",
-                // Add more common irregulars as needed
-            };
-            
-            if (commonIrregulars[originalWord]) {
-                return commonIrregulars[originalWord];
-            }
-            
-            // Try to identify phonological patterns at the word level
-            // This gives better results than letter-by-letter translation
-            for (const pattern of wordPatterns) {
-                if (originalWord.match(pattern.pattern)) {
-                    // The specific matched pattern is only part of the word
-                    const match = originalWord.match(pattern.pattern);
-                    if (match) {
-                        // Extract the matched portion and its position
-                        const matchedText = match[0];
-                        const matchIndex = match.index;
-                        
-                        if (matchIndex === 0 && matchedText.length === originalWord.length) {
-                            // The pattern covers the entire word
-                            const result = pattern.phonology;
-                            // Add stress markers for multi-syllable results
-                            if (countSyllablesInIPA(result) > 1 && !result.includes('ˈ')) {
-                                return addStressMarkers(result);
-                            }
-                            return result;
-                        }
-                        
-                        // For partial matches, we would ideally combine with other patterns
-                        // This is a simplification but should work for common cases
-                        if (matchIndex === 0) {
-                            // Pattern matches beginning of word
-                            const prefix = pattern.phonology;
-                            const remaining = originalWord.substring(matchedText.length);
-                            // Recursively process the rest
-                            const restResult = simpleTranslate(remaining);
-                            const combined = prefix + restResult;
-                            // Add stress if needed
-                            if (countSyllablesInIPA(combined) > 1 && !combined.includes('ˈ')) {
-                                return addStressMarkers(combined);
-                            }
-                            return combined;
-                        } else if (matchIndex + matchedText.length === originalWord.length) {
-                            // Pattern matches end of word
-                            const suffix = pattern.phonology;
-                            const beginning = originalWord.substring(0, matchIndex);
-                            // Recursively process the beginning
-                            const beginningResult = simpleTranslate(beginning);
-                            const combined = beginningResult + suffix;
-                            // Add stress if needed
-                            if (countSyllablesInIPA(combined) > 1 && !combined.includes('ˈ')) {
-                                return addStressMarkers(combined);
-                            }
-                            return combined;
-                        }
-                    }
-                }
-            }
-            
-            // Fallback to a simpler phonetic approach
-            const result = simpleTranslate(originalWord);
-            
-            // Add stress markers for multi-syllable words if not already present
-            if (countSyllablesInIPA(result) > 1 && !result.includes('ˈ')) {
-                return addStressMarkers(result);
-            }
-            
-            return result || originalWord;
-        }
-        
-        // Simpler phonetic translation for fallback
-        function simpleTranslate(word) {
-            // Simplified rules for common letter combinations
-            const simplifiedRules = [
-                // Double consonants (IPA doesn't use consecutive identical consonants)
-                { pattern: /mm/, replacement: "m" },
-                { pattern: /nn/, replacement: "n" },
-                { pattern: /tt/, replacement: "t" },
-                { pattern: /dd/, replacement: "d" },
-                { pattern: /ff/, replacement: "f" },
-                { pattern: /ll/, replacement: "l" },
-                { pattern: /ss/, replacement: "s" },
-                { pattern: /pp/, replacement: "p" },
-                { pattern: /cc/, replacement: "k" },
-                { pattern: /rr/, replacement: "ɻ" },
-                { pattern: /bb/, replacement: "b" },
-                { pattern: /gg/, replacement: "g" },
-                { pattern: /kk/, replacement: "k" },
-                { pattern: /ww/, replacement: "w" },
-                { pattern: /yy/, replacement: "j" },
-                { pattern: /zz/, replacement: "z" },
-                
-                // Common American English patterns
-                { pattern: /th/, replacement: "θ" },  // Simplified, should be context dependent
-                { pattern: /ch|tch/, replacement: "tʃ" },
-                { pattern: /sh/, replacement: "ʃ" },
-                { pattern: /ng/, replacement: "ŋ" },
-                { pattern: /ph/, replacement: "f" },
-                { pattern: /wh/, replacement: "w" }, // American English
-                { pattern: /wr/, replacement: "ɻ" },
-                { pattern: /kn|gn/, replacement: "n" },
-                { pattern: /dg|j/, replacement: "dʒ" },
-                { pattern: /ck/, replacement: "k" },
-                { pattern: /qu/, replacement: "kw" },
-                
-                // Long vowels
-                { pattern: /ee|ea/, replacement: "i" },   // American English uses 'i' not 'iː'
-                { pattern: /oo/, replacement: "u" },
-                { pattern: /oa|ow/, replacement: "oʊ" },
-                { pattern: /ai|ay/, replacement: "eɪ" },
-                { pattern: /ie|y\b|igh/, replacement: "aɪ" },
-                { pattern: /ou/, replacement: "aʊ" },
-                { pattern: /oi|oy/, replacement: "ɔɪ" },
-                
-                // R-controlled vowels
-                { pattern: /ar/, replacement: "ɑɻ" },
-                { pattern: /er|ir|ur/, replacement: "ɝ" },
-                { pattern: /or/, replacement: "ɔɻ" },
-                
-                // Short vowels
-                { pattern: /a/, replacement: "æ" },  // Simplified
-                { pattern: /e/, replacement: "ɛ" },  // Simplified
-                { pattern: /i/, replacement: "ɪ" },  // Simplified
-                { pattern: /o/, replacement: "ɑ" },  // American English
-                { pattern: /u/, replacement: "ʌ" },  // Simplified
-                
-                // Final unstressed vowels
-                { pattern: /a\b/, replacement: "ə" },
-                { pattern: /e\b/, replacement: "ə" },
-                { pattern: /o\b/, replacement: "oʊ" }
-            ];
-
-            // Apply rules to the word
-            let result = word.toLowerCase();
-            
-            for (const rule of simplifiedRules) {
-                result = result.replace(rule.pattern, rule.replacement);
-            }
-            
-            // Basic handling of remaining consonants
-            result = result
-                .replace(/c(?=[eiy])/g, "s")
-                .replace(/c/g, "k")
-                .replace(/g(?=[eiy])/g, "dʒ")
-                .replace(/g/g, "g")
-                .replace(/s(?=[aeiouy][aeiouy])/g, "z")
-                .replace(/t(?=i[aeiouy])/g, "ʃ")
-                .replace(/x/g, "ks")
-                .replace(/v/g, "v")
-                .replace(/b/g, "b")
-                .replace(/d/g, "d")
-                .replace(/f/g, "f")
-                .replace(/h/g, "h")
-                .replace(/k/g, "k")
-                .replace(/l/g, "l")
-                .replace(/m/g, "m")
-                .replace(/n/g, "n")
-                .replace(/p/g, "p")
-                .replace(/r/g, "ɻ")
-                .replace(/s/g, "s")
-                .replace(/t/g, "t")
-                .replace(/w/g, "w")
-                .replace(/z/g, "z");
-                
-            // Remove any consecutive identical consonants (IPA doesn't use them)
-            result = result.replace(/([bcdfghjklmnpqrstvwxzɻʃθðŋ])\1+/g, "$1");
-                
-            return result;
-        }
-        
-        // Count syllables in IPA representation
-        function countSyllablesInIPA(ipa) {
-            // Count vowel sounds in IPA
-            const vowelSounds = ipa.match(/[æɑɛiɪɔʌuʊəɚɝeɪaɪɔɪaʊoʊ]/g);
-            return vowelSounds ? vowelSounds.length : 1;
-        }
-        
-        // Add stress markers based on syllable patterns for American English
-        function addStressMarkers(ipa) {
-            // If stress markers already exist, return as is
-            if (ipa.includes('ˈ') || ipa.includes('ˌ')) {
-                return ipa;
-            }
-            
-            const syllableCount = countSyllablesInIPA(ipa);
-            
-            // For single syllable words, no stress needed
-            if (syllableCount <= 1) {
-                return ipa;
-            }
-            
-            // Find positions of vowel sounds
-            const vowelPattern = /[æɑɛiɪɔʌuʊəɚɝeɪaɪɔɪaʊoʊ]/g;
-            const vowelPositions = [];
-            let match;
-            
-            // Collect positions of all vowel sounds
-            while ((match = vowelPattern.exec(ipa)) !== null) {
-                vowelPositions.push(match.index);
-            }
-            
-            if (vowelPositions.length === 0) {
-                return ipa; // No vowels found
-            }
-            
-            // Apply stress based on typical American English patterns
-            
-            // For two-syllable words: usually stress on first syllable
-            if (syllableCount === 2) {
-                return ipa.slice(0, vowelPositions[0]) + 'ˈ' + ipa.slice(vowelPositions[0]);
-            }
-            
-            // For longer words: more complex patterns
-            // This is a simplification - real English stress is more complex
-            // Primary stress typically falls on the antepenultimate (third from last) syllable
-            // or the penultimate (second from last) syllable
-            
-            // Very basic approach - put primary stress on first syllable
-            // In a real system, you'd use more sophisticated rules
-            return ipa.slice(0, vowelPositions[0]) + 'ˈ' + ipa.slice(vowelPositions[0]);
-        }
-        
-        // Function to estimate syllables in a word
-        function estimateSyllables(word) {
-            word = word.toLowerCase().replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
-            word = word.replace(/^y/, '');
-            
-            // Count vowel groups
-            const syllables = word.match(/[aeiouy]{1,2}/g);
-            return syllables ? syllables.length : 1;
-        }
-        
-        // Event listeners
-        document.getElementById('translate-btn').addEventListener('click', () => {
-            const englishWord = document.getElementById('english-input').value.trim();
-            const ipaOutput = document.getElementById('ipa-output');
-            
-            if (!englishWord) {
-                ipaOutput.textContent = "Please enter a word";
-                return;
-            }
-            
-            ipaOutput.innerHTML = translateToIPA(englishWord);
-        });
-        
-        document.getElementById('english-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                const englishWord = document.getElementById('english-input').value.trim();
-                const ipaOutput = document.getElementById('ipa-output');
-                
-                if (!englishWord) {
-                    ipaOutput.textContent = "Please enter a word";
-                    return;
+            // Process each word
+            for (const word of words) {
+                // Skip punctuation
+                if (/^[.,!?;:]$/.test(word)) {
+                    ipaText += word + " ";
+                    continue;
                 }
                 
-                ipaOutput.innerHTML = translateToIPA(englishWord);
-            }
-        });
-        
-        // Add event listeners for example words
-        document.querySelectorAll('.example-word').forEach(button => {
-            button.addEventListener('click', () => {
-                const word = button.getAttribute('data-word');
-                document.getElementById('english-input').value = word;
-                document.getElementById('ipa-output').innerHTML = translateToIPA(word);
-            });
-        });
-    </script>
-</body>
-</html>
+                // Translate the word
+                let ipaWord = "";
+                
+                // Check if word is in dictionary
+                if (ipaDict[word.toLowerCase()]) {
+                    ipaWord = ipaDict[word.toLowerCase()];
+                } else {
+                    // Try algorithmic translation
+                    try {
+                        ipaWord = algorithmicTranslate(word.toLowerCase());
+                    } catch (error) {
+                        console.error
