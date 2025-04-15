@@ -593,4 +593,342 @@
                     try {
                         ipaWord = algorithmicTranslate(word.toLowerCase());
                     } catch (error) {
-                        console.error
+                        console.error("Error translating word:", error);
+                        ipaWord = word; // Use original word if translation fails
+                    }
+                }
+                
+                ipaText += ipaWord + " ";
+            }
+            
+            return ipaText.trim();
+        }
+        
+        // Function to find similar words in the dictionary
+        function findSimilarWords(word, dictionary, maxResults = 3) {
+            const results = [];
+            
+            for (const dictWord in dictionary) {
+                // Skip if the dictionary word is much different in length
+                if (Math.abs(dictWord.length - word.length) > 3) continue;
+                
+                const similarity = calculateSimilarity(word, dictWord);
+                if (similarity > 0.7) { // Threshold for considering similar
+                    results.push({
+                        word: dictWord,
+                        similarity: similarity
+                    });
+                }
+            }
+            
+            // Sort by similarity (highest first) and return top results
+            return results
+                .sort((a, b) => b.similarity - a.similarity)
+                .slice(0, maxResults);
+        }
+        
+        // Calculate similarity between two words (0 to 1)
+        function calculateSimilarity(word1, word2) {
+            // Simple implementation using Levenshtein distance
+            const distance = levenshteinDistance(word1, word2);
+            const maxLength = Math.max(word1.length, word2.length);
+            return 1 - (distance / maxLength);
+        }
+        
+        // Levenshtein distance for string similarity
+        function levenshteinDistance(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+            
+            const matrix = [];
+            
+            // Initialize the matrix
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+            
+            // Calculate distances
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    const cost = a[j-1] === b[i-1] ? 0 : 1;
+                    matrix[i][j] = Math.min(
+                        matrix[i-1][j] + 1,      // deletion
+                        matrix[i][j-1] + 1,      // insertion
+                        matrix[i-1][j-1] + cost  // substitution
+                    );
+                }
+            }
+            
+            return matrix[b.length][a.length];
+        }
+        
+        // Algorithmic translation for words not in the dictionary
+        function algorithmicTranslate(word) {
+            const originalWord = word.toLowerCase().trim();
+            
+            // Check for common irregular words
+            const commonIrregulars = {
+                "one": "wʌn",
+                "once": "wʌns",
+                "two": "tu",
+                "been": "bɪn",
+                "busy": "ˈbɪzi",
+                "women": "ˈwɪmɪn",
+                "says": "sɛz",
+                "said": "sɛd",
+                "many": "ˈmɛni",
+                "any": "ˈɛni",
+                "know": "noʊ",
+                "knew": "nu",
+                "some": "sʌm",
+                "done": "dʌn",
+                "none": "nʌn",
+                "great": "gɹeɪt",
+                "eye": "aɪ",
+                "height": "haɪt",
+                "friend": "fɹɛnd",
+                "island": "ˈaɪlənd",
+                "answer": "ˈænsɚ",
+                "could": "kʊd",
+                "would": "wʊd",
+                "should": "ʃʊd",
+                "enough": "ɪˈnʌf",
+                "laugh": "læf",
+                "rough": "ɹʌf",
+                "tough": "tʌf",
+                "gone": "gɔn",
+                "come": "kʌm",
+                "love": "lʌv",
+                "move": "muv",
+                "have": "hæv",
+                "give": "gɪv",
+                "live": "lɪv",
+                "who": "hu",
+                "whom": "hum",
+                "whose": "huz",
+                "what": "wʌt",
+                "where": "wɛɹ",
+                "when": "wɛn",
+                "why": "waɪ",
+                "how": "haʊ"
+            };
+            
+            if (commonIrregulars[originalWord]) {
+                return commonIrregulars[originalWord];
+            }
+            
+            // Apply pattern matching for word-level phonology
+            for (const pattern of wordPatterns) {
+                if (originalWord.match(pattern.pattern)) {
+                    const match = originalWord.match(pattern.pattern);
+                    if (match) {
+                        const matchedText = match[0];
+                        const matchIndex = match.index;
+                        
+                        // Full word match
+                        if (matchIndex === 0 && matchedText.length === originalWord.length) {
+                            const result = pattern.phonology;
+                            return addStressMarkers(result);
+                        }
+                        
+                        // Partial match processing will be handled below
+                    }
+                }
+            }
+            
+            // If no full match, process the word using more general rules
+            return processWord(originalWord);
+        }
+        
+        // Process a word using general phonological rules
+        function processWord(word) {
+            // Preprocessing
+            let result = word.toLowerCase();
+            
+            // Apply r-colored vowel rules first (they're important in American English)
+            for (const rule of rColoredVowels) {
+                result = result.replace(rule.pattern, rule.replacement);
+            }
+            
+            // Apply flap rules for t between vowels (important for American English)
+            for (const rule of flapRules) {
+                result = result.replace(rule.pattern, rule.replacement);
+            }
+            
+            // Apply general phonological rules
+            result = result
+                // Vowels
+                .replace(/a(?=[^aeiou]e$)/, "eɪ")      // bake, cake
+                .replace(/a(?=[^aeiou][^e]|$)/, "æ")   // cat, bad
+                .replace(/e(?=[^aeiou]e$)/, "i")       // complete, delete
+                .replace(/e(?=[^aeiou][^e]|$)/, "ɛ")   // bed, let
+                .replace(/i(?=[^aeiou]e$)/, "aɪ")      // bite, kite
+                .replace(/i(?=[^aeiou][^e]|$)/, "ɪ")   // bit, sit
+                .replace(/o(?=[^aeiou]e$)/, "oʊ")      // hope, note
+                .replace(/o(?=[^aeiou][^e]|$)/, "ɑ")   // hot, pot (in American English)
+                .replace(/u(?=[^aeiou]e$)/, "ju")      // cute, mute
+                .replace(/u(?=[^aeiou][^e]|$)/, "ʌ")   // but, cut
+                
+                // Consonants
+                .replace(/c(?=[eiy])/, "s")            // city, cycle
+                .replace(/c/, "k")                     // cat, cut
+                .replace(/th(?=[aeiou])/, "θ")         // thin, through
+                .replace(/th/, "ð")                    // this, that
+                .replace(/sh/, "ʃ")                    // ship, wish
+                .replace(/ch/, "tʃ")                   // chain, much
+                .replace(/j/, "dʒ")                    // job, jump
+                .replace(/ng/, "ŋ")                    // sing, song
+                .replace(/ph/, "f")                    // phone, graph
+                .replace(/wh/, "w")                    // what, where
+                .replace(/x/, "ks")                    // box, tax
+                .replace(/qu/, "kw")                   // queen, quite
+                
+                // Ensure r is always the American rhotic
+                .replace(/r/g, "ɹ");
+                
+            // Post-processing for schwa in unstressed syllables
+            if (result.length > 4) {
+                result = result.replace(/[aeiou](?=[bcdfghjklmnpqrstvwxyz]{1,2}[aeiou])/g, "ə");
+            }
+            
+            // Add stress markers for words longer than one syllable
+            if (countSyllables(result) > 1) {
+                result = addStressMarkers(result);
+            }
+            
+            return result;
+        }
+        
+        // Count syllables in a word
+        function countSyllables(word) {
+            // Count vowel groups as an approximation of syllables
+            const matches = word.match(/[aeiouyɑæɛɪɔʌʊəɚɝiuoʊeɪaɪɔɪaʊ]+/g) || [];
+            return matches.length;
+        }
+        
+        // Add stress markers based on syllable patterns for American English
+        function addStressMarkers(word) {
+            // If already has stress markers, return as is
+            if (word.includes('ˈ') || word.includes('ˌ')) {
+                return word;
+            }
+            
+            const syllableCount = countSyllables(word);
+            
+            // For single syllable words, no stress needed
+            if (syllableCount <= 1) {
+                return word;
+            }
+            
+            // Find syllable boundaries
+            let syllables = word.match(/[bcdfghjklmnpqrstvwxyzθðʃʒtʃdʒŋɹɾ]*[aeiouyɑæɛɪɔʌʊəɚɝiuoʊeɪaɪɔɪaʊ]+[bcdfghjklmnpqrstvwxyzθðʃʒtʃdʒŋɹɾ]*/g) || [];
+            
+            // Default stress patterns based on syllable count
+            if (syllableCount === 2) {
+                // Two-syllable words typically stress first syllable
+                return 'ˈ' + syllables.join('');
+            } else if (syllableCount === 3) {
+                // Three-syllable words often stress first syllable
+                return 'ˈ' + syllables.join('');
+            } else {
+                // Longer words: stress typically falls on antepenultimate syllable
+                // This is a simplification
+                let result = '';
+                for (let i = 0; i < syllables.length; i++) {
+                    if (i === 0) {
+                        result += 'ˈ' + syllables[i];
+                    } else {
+                        result += syllables[i];
+                    }
+                }
+                return result;
+            }
+        }
+        
+        // UI interaction code
+        document.addEventListener('DOMContentLoaded', function() {
+            // Mode selector
+            const wordMode = document.getElementById('word-mode');
+            const textMode = document.getElementById('text-mode');
+            const wordInputContainer = document.getElementById('word-input-container');
+            const textInputContainer = document.getElementById('text-input-container');
+            
+            wordMode.addEventListener('change', function() {
+                if (this.checked) {
+                    wordInputContainer.style.display = 'flex';
+                    textInputContainer.style.display = 'none';
+                }
+            });
+            
+            textMode.addEventListener('change', function() {
+                if (this.checked) {
+                    wordInputContainer.style.display = 'none';
+                    textInputContainer.style.display = 'block';
+                }
+            });
+            
+            // Word translation
+            const translateBtn = document.getElementById('translate-btn');
+            const englishInput = document.getElementById('english-input');
+            const ipaOutput = document.getElementById('ipa-output');
+            
+            translateBtn.addEventListener('click', function() {
+                const word = englishInput.value.trim();
+                if (!word) {
+                    ipaOutput.textContent = "Please enter a word";
+                    return;
+                }
+                ipaOutput.innerHTML = translateToIPA(word);
+            });
+            
+            englishInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    const word = englishInput.value.trim();
+                    if (!word) {
+                        ipaOutput.textContent = "Please enter a word";
+                        return;
+                    }
+                    ipaOutput.innerHTML = translateToIPA(word);
+                }
+            });
+            
+            // Text translation
+            const translateTextBtn = document.getElementById('translate-text-btn');
+            const englishTextInput = document.getElementById('english-text-input');
+            
+            translateTextBtn.addEventListener('click', function() {
+                const text = englishTextInput.value.trim();
+                if (!text) {
+                    ipaOutput.textContent = "Please enter text";
+                    return;
+                }
+                ipaOutput.innerHTML = translateTextToIPA(text);
+            });
+            
+            // Example words
+            document.querySelectorAll('.example-word').forEach(button => {
+                button.addEventListener('click', function() {
+                    const content = this.getAttribute('data-word');
+                    const textContent = this.getAttribute('data-text');
+                    
+                    if (textContent) {
+                        // It's a text example
+                        textMode.checked = true;
+                        wordInputContainer.style.display = 'none';
+                        textInputContainer.style.display = 'block';
+                        englishTextInput.value = textContent;
+                        ipaOutput.innerHTML = translateTextToIPA(textContent);
+                    } else {
+                        // It's a word example
+                        wordMode.checked = true;
+                        wordInputContainer.style.display = 'flex';
+                        textInputContainer.style.display = 'none';
+                        englishInput.value = content;
+                        ipaOutput.innerHTML = translateToIPA(content);
+                    }
+                });
+            });
+        });
