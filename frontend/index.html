@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>English to IPA Translator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>English to IPA Translator</h1>
+    <form id="ipaForm">
+      <textarea id="text" placeholder="Enter English text here..." required></textarea>
+      <button type="submit">Translate</button>
+    </form>
+    <div class="result" id="result"></div>
+  </div>
+
+  <script>
+    document.getElementById('ipaForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('text').value;
+
+      const res = await fetch('https://YOUR-RENDER-URL.onrender.com/api/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: input })
+      });
+
+      const data = await res.json();
+      document.getElementById('result').innerText = data.result || "Translation failed.";
+    });
+  </script>
+</body>
+</html>
