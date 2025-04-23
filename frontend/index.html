@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>English to IPA Translator</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="static/styles.css">
 </head>
 <body>
   <div class="container">
@@ -15,12 +15,13 @@
     <div class="result" id="result"></div>
   </div>
 
+  <!-- Here is where the fetch('/api/convert') lives -->
   <script>
     document.getElementById('ipaForm').addEventListener('submit', async function (e) {
       e.preventDefault();
-  
+
       const text = document.getElementById('text').value;
-  
+
       try {
         const res = await fetch('/api/convert', {
           method: 'POST',
@@ -29,11 +30,11 @@
           },
           body: JSON.stringify({ text: text })
         });
-  
+
         if (!res.ok) {
           throw new Error(`Server error: ${res.status}`);
         }
-  
+
         const data = await res.json();
         document.getElementById('result').innerText = data.result || "Translation failed.";
       } catch (err) {
@@ -42,7 +43,5 @@
       }
     });
   </script>
-  
-  
 </body>
 </html>
