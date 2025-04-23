@@ -30,5 +30,25 @@
       document.getElementById('result').innerText = data.result || "Translation failed.";
     });
   </script>
+  <script>
+    document.getElementById('ipaForm').addEventListener('submit', async function (e) {
+      e.preventDefault(); // prevent page reload
+  
+      const text = document.getElementById('text').value;
+  
+      const res = await fetch('/api/convert', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ text: text })
+      });
+  
+      const data = await res.json();
+  
+      document.getElementById('result').innerText = data.result || "Translation failed.";
+    });
+  </script>
+  
 </body>
 </html>
