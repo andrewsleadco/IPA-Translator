@@ -15,19 +15,18 @@
     <div class="result" id="result"></div>
   </div>
 
-  <!-- Here is where the fetch('/api/convert') lives -->
   <script>
     document.getElementById('ipaForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
+      e.preventDefault(); // Prevent page reload
 
       const text = document.getElementById('text').value;
 
       try {
         const res = await fetch('https://ipa-translator-backend.onrender.com/api/convert', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ text: input })
-});
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: text })
+        });
 
         if (!res.ok) {
           throw new Error(`Server error: ${res.status}`);
@@ -36,8 +35,8 @@
         const data = await res.json();
         document.getElementById('result').innerText = data.result || "Translation failed.";
       } catch (err) {
-        console.error(err);
-        document.getElementById('result').innerText = "Something went wrong.";
+        console.error('Error:', err);
+        document.getElementById('result').innerText = "Something went wrong. Please try again.";
       }
     });
   </script>
