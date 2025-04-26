@@ -23,7 +23,7 @@
       const text = document.getElementById('text').value;
 
       try {
-        const res = await fetch('https://<your-render-backend-url>/api/convert', {
+        const res = await fetch('https://ipa-translator-backend.onrender.com/api/convert', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ text: input })
